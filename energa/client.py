@@ -47,6 +47,8 @@ class EnergaClient:
                 invoices = await client.get_invoices(account.account_number)
     """
 
+    _MAX_RELOGIN_ATTEMPTS = 2
+
     def __init__(self, username: str, password: str) -> None:
         self._username = username
         self._password = password
@@ -56,6 +58,7 @@ class EnergaClient:
         self._keycloak_id: str = ""
         self._email: str = ""
         self._clients: list[Client] = []
+        self._relogin_attempts: int = 0
 
     # ── context manager ───────────────────────────────────────────────────────
 
@@ -280,9 +283,17 @@ class EnergaClient:
             headers={"Accept": "application/json"},
         ) as resp:
             if resp.status != 200:
-                raise EnergaAuthError("Token refresh failed — please log in again.")
+                if self._relogin_attempts < self._MAX_RELOGIN_ATTEMPTS:
+                    self._relogin_attempts += 1
+                    await self.login()
+                    return
+                raise EnergaAuthError(
+                    f"Token refresh failed after {self._MAX_RELOGIN_ATTEMPTS} "
+                    "re-login attempt(s) — please restart the client."
+                )
             self._tokens = await resp.json()
 
+        self._relogin_attempts = 0
         self._token_expires_at = time.monotonic() + self._tokens["expires_in"]
         session.headers.update({"Authorization": f"Bearer {self._tokens['access_token']}"})
         self._update_kc_token_cookie()
