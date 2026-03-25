@@ -1,0 +1,8 @@
+{
+  "access_token": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0ZXN0LXVzZXItaWQiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJleHAiOjk5OTk5OTk5OTl9.signature",
+  "token_type": "Bearer",
+  "expires_in": 300,
+  "refresh_token": "test-refresh-token",
+  "refresh_expires_in": 1800,
+  "session_state": "test-session-state"
+}

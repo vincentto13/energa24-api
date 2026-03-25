@@ -1,0 +1,61 @@
+[project]
+name = "energa24-api"
+dynamic = ["version"]
+description = "Async/sync Python client for the 24.energa.pl self-care portal"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Pawel Rapkiewicz", email = "pawel.rapkiewicz@gmail.com" },
+]
+keywords = ["energa", "energy", "electricity", "poland", "utility", "api-client"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: AsyncIO",
+    "Typing :: Typed",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.9",
+]
+
+[project.urls]
+Homepage = "https://github.com/vincentto13/energa24-api"
+Source = "https://github.com/vincentto13/energa24-api"
+"Bug Tracker" = "https://github.com/vincentto13/energa24-api/issues"
+
+[project.optional-dependencies]
+mcp = [
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+energa-mcp = "energa.mcp_server:main"
+
+[tool.hatch.version]
+source = "vcs"
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["energa"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "aioresponses>=0.7",
+    "mcp>=1.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

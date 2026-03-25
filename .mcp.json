@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "energa": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "python", "-m", "energa.mcp_server"],
+      "env": {
+        "ENERGA_USERNAME": "${ENERGA_USERNAME}",
+        "ENERGA_PASSWORD": "${ENERGA_PASSWORD}"
+      }
+    }
+  }
+}

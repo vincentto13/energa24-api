@@ -1,0 +1,34 @@
+{
+  "status": "OK",
+  "clients": [
+    {
+      "clientNumber": "9900000001",
+      "clientName": "JAN KOWALSKI",
+      "clientType": "INDIVIDUAL",
+      "invoiceProfile": [
+        {
+          "accountNumber": "1234567890",
+          "clientNumber": "9900000001",
+          "accountType": "ELECTRICITY",
+          "access": "FULL",
+          "alias": null,
+          "ppes": [
+            {
+              "ppeNumber": "PL0000000000000000000000000001",
+              "alias": "Dom",
+              "meterAddress": {
+                "streetName": "Lipowa",
+                "houseNumber": "12",
+                "apartmentNumber": "3",
+                "zipCode": "80-001",
+                "cityName": "Gdańsk"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "b2bClients": [],
+  "gasClients": []
+}

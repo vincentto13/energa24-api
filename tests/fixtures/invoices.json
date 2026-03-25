@@ -1,0 +1,34 @@
+{
+  "invoices": [
+    {
+      "documentId": "DOC-001",
+      "invoiceNumber": "FV/2025/01/001",
+      "documentTitle": "Faktura VAT",
+      "issueDate": "2025-01-15",
+      "paymentDate": "2025-02-05",
+      "invoiceAmount": 120.30,
+      "status": "PAID",
+      "dmsId": "351461623",
+      "accruedInterest": 0.0,
+      "buttonStatus": {
+        "shouldShow": true,
+        "validDocument": true
+      }
+    },
+    {
+      "documentId": "DOC-002",
+      "invoiceNumber": "FV/2025/02/001",
+      "documentTitle": "Faktura VAT",
+      "issueDate": "2025-02-15",
+      "paymentDate": null,
+      "invoiceAmount": 98.75,
+      "status": "UNPAID",
+      "dmsId": null,
+      "accruedInterest": 1.50,
+      "buttonStatus": {
+        "shouldShow": false,
+        "validDocument": false
+      }
+    }
+  ]
+}
