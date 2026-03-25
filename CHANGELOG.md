@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-03-26
+
+### Fixed
+- Transparent re-login on refresh token expiry: when a token refresh fails
+  (e.g. after 30 minutes of inactivity), the client now attempts a full
+  re-login silently up to 2 times before raising `EnergaAuthError`. The
+  counter resets to 0 after any successful refresh, so transient failures
+  each get their own two attempts.
+
 ## [0.2.0] - 2026-03-25
 
 ### Added
