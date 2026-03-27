@@ -49,9 +49,10 @@ class EnergaClient:
 
     _MAX_RELOGIN_ATTEMPTS = 2
 
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str, *, use_orlenid: bool = False) -> None:
         self._username = username
         self._password = password
+        self._use_orlenid = use_orlenid
         self._session: aiohttp.ClientSession | None = None
         self._tokens: dict | None = None
         self._token_expires_at: float = 0.0
@@ -116,6 +117,20 @@ class EnergaClient:
             },
         ) as resp:
             html = await resp.text()
+
+        if self._use_orlenid:
+            # Find the OrlenID broker button link and follow it to oid-ws.orlen.pl
+            broker_match = re.search(r'href="([^"]*broker/keycloak-oidc/login[^"]*)"', html)
+            if not broker_match:
+                raise EnergaAuthError(
+                    "Could not find OrlenID login link on Energa page — site may have changed."
+                )
+            broker_url = broker_match.group(1).replace("&amp;", "&")
+            if broker_url.startswith("/"):
+                broker_url = f"{_BASE_URL}{broker_url}"
+            # Follow broker URL (303 → oid-ws.orlen.pl login page)
+            async with session.get(broker_url) as resp:
+                html = await resp.text()
 
         match = re.search(r'action="([^"]+)"', html)
         if not match:

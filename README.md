@@ -6,7 +6,8 @@ Reverse-engineered from browser traffic. Supports both async and sync usage.
 ## Features
 
 - Authentication via OIDC Authorization Code + PKCE (Keycloak)
-- Automatic token refresh
+- Native Energa login and OrlenID federated login (shared Orlen Group account)
+- Automatic token refresh with transparent re-login on session expiry
 - List clients and accounts
 - Fetch account balance
 - List invoices (with date range and pagination)
@@ -23,14 +24,19 @@ pip install energa24-api
 ### From source (with [uv](https://docs.astral.sh/uv/))
 
 ```bash
-git clone https://github.com/vincentto13/energa24-api
+git clone https://github.com/vincentto13/energa24-api.git
 cd energa-api
 uv sync
 ```
 
 ## Configuration
 
-Copy `.env.example` and fill in your credentials:
+Set credentials for one (or both) of the following:
+
+| Env vars | Login mode | Notes |
+|---|---|---|
+| `ORLENID_USERNAME` + `ORLENID_PASSWORD` | OrlenID (`oid-ws.orlen.pl`) | Shared across Orlen Group services. Takes priority if both are set. |
+| `ENERGA_USERNAME` + `ENERGA_PASSWORD` | Native 24.energa.pl | Use if you have a standalone Energa account. |
 
 ```bash
 cp .env.example .env
@@ -44,7 +50,12 @@ cp .env.example .env
 ```python
 from energa import EnergaClient
 
-async with EnergaClient("user@example.com", "password") as client:
+# Native Energa credentials (24.energa.pl username/password)
+async with EnergaClient("user@example.com", "energa-password") as client:
+    ...
+
+# OrlenID credentials (shared Orlen Group account — oid-ws.orlen.pl)
+async with EnergaClient("user@example.com", "orlenid-password", use_orlenid=True) as client:
     for account in client.accounts:
         balance = await client.get_balance(account.account_number)
         print(balance.balance, "PLN")
@@ -62,7 +73,7 @@ async with EnergaClient("user@example.com", "password") as client:
 ```python
 from energa import EnergaClientSync
 
-with EnergaClientSync("user@example.com", "password") as client:
+with EnergaClientSync("user@example.com", "orlenid-password", use_orlenid=True) as client:
     balance = client.get_balance(account_number)
     invoices = client.get_invoices(account_number)
     pdf = client.download_invoice(account_number, dms_id)
@@ -81,11 +92,16 @@ uv sync --extra mcp
 **2. Export your credentials**
 
 ```bash
+# OrlenID (recommended — works across all Orlen Group services)
+export ORLENID_USERNAME=you@example.com
+export ORLENID_PASSWORD=your-orlenid-password
+
+# — or — native Energa credentials
 export ENERGA_USERNAME=you@example.com
-export ENERGA_PASSWORD=your-password
+export ENERGA_PASSWORD=your-energa-password
 ```
 
-Or persist them in `~/.bashrc` / `~/.zshrc` so they're always available.
+Persist in `~/.bashrc` / `~/.zshrc` so they're always available.
 
 **3. Verify the server starts**
 
@@ -111,7 +127,11 @@ You should see `energa` listed as connected with 4 tools.
 ### Running the smoke test (live API)
 
 ```bash
-ENERGA_USERNAME=you@example.com ENERGA_PASSWORD=secret uv run scripts/smoke_test.py
+# OrlenID credentials
+ORLENID_USERNAME=you@example.com ORLENID_PASSWORD=orlenid-secret uv run scripts/smoke_test.py
+
+# Native Energa credentials
+ENERGA_USERNAME=you@example.com ENERGA_PASSWORD=energa-secret uv run scripts/smoke_test.py
 ```
 
 Or with a `.env` file:
@@ -123,7 +143,7 @@ uv run --env-file .env scripts/smoke_test.py
 ### Running the test suite
 
 ```bash
-uv run --group dev pytest
+uv run pytest
 ```
 
 ## MCP Server
@@ -149,12 +169,16 @@ pip install energa24-api[mcp]
 ### Run standalone
 
 ```bash
-ENERGA_USERNAME=you@example.com ENERGA_PASSWORD=secret uv run python -m energa.mcp_server
+# OrlenID credentials
+ORLENID_USERNAME=you@example.com ORLENID_PASSWORD=orlenid-secret uv run python -m energa.mcp_server
+
+# Native Energa credentials
+ENERGA_USERNAME=you@example.com ENERGA_PASSWORD=energa-secret uv run python -m energa.mcp_server
 ```
 
 ### Claude Desktop configuration
 
-Add to `~/config/claude/claude_desktop_config.json`:
+Add to `~/.config/claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -163,16 +187,19 @@ Add to `~/config/claude/claude_desktop_config.json`:
       "command": "uv",
       "args": ["run", "--project", "/path/to/energa-api", "python", "-m", "energa.mcp_server"],
       "env": {
-        "ENERGA_USERNAME": "you@example.com",
-        "ENERGA_PASSWORD": "your-password"
+        "ORLENID_USERNAME": "you@example.com",
+        "ORLENID_PASSWORD": "your-orlenid-password"
       }
     }
   }
 }
 ```
 
-> **Note:** The access token expires after 5 minutes and is refreshed automatically.
-> The refresh token expires after 30 minutes of inactivity — if that happens, restart the server.
+Use `ORLENID_USERNAME`/`ORLENID_PASSWORD` for OrlenID, or `ENERGA_USERNAME`/`ENERGA_PASSWORD` for native Energa. If both are set, OrlenID takes priority.
+
+> **Note:** The access token (5 min) is refreshed automatically. If the refresh token
+> expires after 30 minutes of inactivity, the client silently re-logs in (up to 2 attempts)
+> before raising an error — no manual restart needed in most cases.
 
 ### Example prompts
 

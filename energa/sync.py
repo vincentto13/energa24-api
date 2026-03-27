@@ -22,9 +22,9 @@ class EnergaClientSync:
             invoices = client.get_invoices("1234567890")
     """
 
-    def __init__(self, username: str, password: str) -> None:
+    def __init__(self, username: str, password: str, *, use_orlenid: bool = False) -> None:
         self._loop = asyncio.new_event_loop()
-        self._async = EnergaClient(username, password)
+        self._async = EnergaClient(username, password, use_orlenid=use_orlenid)
         try:
             self._run(self._async.login())
         except Exception:

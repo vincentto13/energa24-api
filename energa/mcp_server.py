@@ -4,9 +4,10 @@ Run with:
     uv run python -m energa.mcp_server
     energa-mcp                           # after pip install energa24-api[mcp]
 
-Required environment variables:
-    ENERGA_USERNAME   — your 24.energa.pl login e-mail
-    ENERGA_PASSWORD   — your 24.energa.pl password
+Credentials — set one of the following pairs:
+    ORLENID_USERNAME / ORLENID_PASSWORD   — OrlenID (oid-ws.orlen.pl) credentials
+                                            Takes priority if both pairs are set.
+    ENERGA_USERNAME  / ENERGA_PASSWORD    — native 24.energa.pl credentials
 """
 from __future__ import annotations
 
@@ -102,13 +103,21 @@ _client: EnergaClient | None = None
 @asynccontextmanager
 async def lifespan(_app: Any) -> AsyncIterator[None]:
     global _client
-    username = os.environ.get("ENERGA_USERNAME", "")
-    password = os.environ.get("ENERGA_PASSWORD", "")
-    if not username or not password:
+    orlenid_user = os.environ.get("ORLENID_USERNAME", "")
+    orlenid_pass = os.environ.get("ORLENID_PASSWORD", "")
+    energa_user  = os.environ.get("ENERGA_USERNAME", "")
+    energa_pass  = os.environ.get("ENERGA_PASSWORD", "")
+
+    if orlenid_user and orlenid_pass:
+        username, password, use_orlenid = orlenid_user, orlenid_pass, True
+    elif energa_user and energa_pass:
+        username, password, use_orlenid = energa_user, energa_pass, False
+    else:
         sys.exit(
-            "ENERGA_USERNAME and ENERGA_PASSWORD environment variables must be set."
+            "Set ORLENID_USERNAME/ORLENID_PASSWORD (OrlenID) "
+            "or ENERGA_USERNAME/ENERGA_PASSWORD (native) environment variables."
         )
-    _client = EnergaClient(username, password)
+    _client = EnergaClient(username, password, use_orlenid=use_orlenid)
     await _client.login()
     try:
         yield

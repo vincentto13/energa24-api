@@ -12,6 +12,9 @@ wheels/
 # Secrets
 .env
 
+# HAR capture files (contain session tokens and credentials)
+*.har
+
 # Downloaded invoices
 *.pdf
 

@@ -20,12 +20,19 @@ The portal uses **Keycloak** with **OIDC Authorization Code + PKCE (S256)**.
 | Access token TTL | 300s (5 min) |
 | Refresh token TTL | 1800s (30 min) |
 
-**Login steps:**
+**Login steps (native — `use_orlenid=False`):**
 1. GET `/auth/realms/Energa-Selfcare/protocol/openid-connect/auth` with PKCE params → Keycloak login page
 2. POST credentials to Keycloak form action URL → follow redirects until `redirect_uri#code=...`
 3. GET `/ss/` (establishes Next.js session context)
 4. POST `/auth/realms/Energa-Selfcare/protocol/openid-connect/token` with `code` + `code_verifier`
 5. Set `Authorization: Bearer <access_token>` on all subsequent API calls
+
+**Login steps (OrlenID — `use_orlenid=True`):**
+1. Same initial GET → Keycloak login page (contains both native form and OrlenID button)
+2. Extract broker link (`/auth/realms/Energa-Selfcare/broker/keycloak-oidc/login?...`) and follow it
+3. 303 redirect to `oid-ws.orlen.pl` login page (`client_id=energa24-web`)
+4. POST credentials to `oid-ws.orlen.pl` form action → OrlenID redirects to Energa broker endpoint → `redirect_uri#code=...`
+5. Token exchange identical to native (same Energa token endpoint, same PKCE verifier)
 
 **Authenticated API calls** use:
 - `Authorization: Bearer <access_token>` header
@@ -75,44 +82,47 @@ energa/
 ## Usage
 
 ```python
-# Async
+# Async — native Energa credentials
 async with EnergaClient("user@example.com", "password") as client:
     client.accounts          # cached from login, no I/O
-    client.clients           # same
     await client.get_balance("1234567890")
     await client.get_invoices("1234567890")
     await client.download_invoice("1234567890", dms_id="000000000")  # → bytes
 
+# Async — OrlenID credentials
+async with EnergaClient("user@example.com", "password", use_orlenid=True) as client:
+    await client.get_balance("1234567890")
+
 # Sync
-with EnergaClientSync("user@example.com", "password") as client:
+with EnergaClientSync("user@example.com", "password", use_orlenid=True) as client:
     client.get_balance("1234567890")
 
-# MCP server
-uv run python -m energa.mcp_server   # reads ENERGA_USERNAME / ENERGA_PASSWORD from env
+# MCP server — reads ORLENID_USERNAME/ORLENID_PASSWORD (priority) or ENERGA_USERNAME/ENERGA_PASSWORD
+uv run python -m energa.mcp_server
 ```
 
 ---
 
 ## What's done
-- [x] Login flow (OIDC + PKCE)
+- [x] Login flow (OIDC + PKCE) — native and OrlenID (`use_orlenid=True`)
 - [x] Dashboard fetch + account caching
 - [x] Balance per account
 - [x] Invoice list per account (paginated, date range)
 - [x] Invoice PDF download (prepare UUID → download)
-- [x] Transparent token refresh
+- [x] Transparent token refresh + re-login on session expiry (up to 2 attempts)
 - [x] Async client (`EnergaClient`)
 - [x] Sync wrapper (`EnergaClientSync`)
 - [x] uv-managed virtualenv
 - [x] Package published as `energa24-api` on PyPI
 - [x] MCP server (`energa/mcp_server.py`) — 4 tools: `list_accounts`, `get_balance`, `get_invoices`, `download_invoice`
-- [x] 65 unit tests (no live calls)
+- [x] 70 unit tests (no live calls)
 - [x] `.mcp.json` for Claude Code integration
 
 ## What's next / ideas
 - [ ] Consumption chart data (`GET /api/accounts/{account}/ppes/chart`)
 - [ ] Notifications (`POST /api/notifications`)
 - [ ] Overdue invoice status (`GET /api/accounts/{account}/invoices/overdue-invoice-status`)
-- [ ] Bump to v0.2.0 and publish to PyPI
+- [ ] Bump to v0.3.0 and publish to PyPI
 
 ---
 

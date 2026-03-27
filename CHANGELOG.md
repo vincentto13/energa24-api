@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-03-26
+
+### Added
+- OrlenID login support: `EnergaClient("email", "pass", use_orlenid=True)` authenticates
+  via `oid-ws.orlen.pl` instead of Energa's native login form. Energa Keycloak brokers
+  to OrlenID — required for accounts that use OrlenID (Orlen Group) credentials.
+- Credential auto-detection in MCP server and smoke test: set `ORLENID_USERNAME` /
+  `ORLENID_PASSWORD` for OrlenID login, or `ENERGA_USERNAME` / `ENERGA_PASSWORD` for
+  native Energa login. OrlenID takes priority if both are set.
+
+### Fixed
+- HAR capture files (`*.har`) added to `.gitignore` — they contain session tokens and credentials.
+
 ## [0.2.1] - 2026-03-26
 
 ### Fixed

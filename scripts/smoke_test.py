@@ -5,15 +5,26 @@ import os
 import pathlib
 import sys
 
-USERNAME = os.environ["ENERGA_USERNAME"]
-PASSWORD = os.environ["ENERGA_PASSWORD"]
+_orlenid_user = os.environ.get("ORLENID_USERNAME", "")
+_orlenid_pass = os.environ.get("ORLENID_PASSWORD", "")
+_energa_user  = os.environ.get("ENERGA_USERNAME", "")
+_energa_pass  = os.environ.get("ENERGA_PASSWORD", "")
+
+if _orlenid_user and _orlenid_pass:
+    USERNAME, PASSWORD, USE_ORLENID = _orlenid_user, _orlenid_pass, True
+elif _energa_user and _energa_pass:
+    USERNAME, PASSWORD, USE_ORLENID = _energa_user, _energa_pass, False
+else:
+    print("ERROR: set ORLENID_USERNAME/ORLENID_PASSWORD or ENERGA_USERNAME/ENERGA_PASSWORD", file=sys.stderr)
+    sys.exit(1)
 
 
 async def test_async():
     from energa import EnergaClient, EnergaForbiddenError
 
     print("=== Async client ===")
-    async with EnergaClient(USERNAME, PASSWORD) as client:
+    print(f"Login via: {'OrlenID' if USE_ORLENID else 'native Energa'}")
+    async with EnergaClient(USERNAME, PASSWORD, use_orlenid=USE_ORLENID) as client:
         print(f"Clients: {len(client.clients)}")
         for c in client.clients:
             print(f"  {c.name} ({c.client_number}) — {len(c.accounts)} account(s)")

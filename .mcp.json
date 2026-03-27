@@ -5,6 +5,8 @@
       "command": "uv",
       "args": ["run", "python", "-m", "energa.mcp_server"],
       "env": {
+        "ORLENID_USERNAME": "${ORLENID_USERNAME}",
+        "ORLENID_PASSWORD": "${ORLENID_PASSWORD}",
         "ENERGA_USERNAME": "${ENERGA_USERNAME}",
         "ENERGA_PASSWORD": "${ENERGA_PASSWORD}"
       }
